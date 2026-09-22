@@ -142,9 +142,9 @@
 
 <div class="screen-container">
     <div id="terminal"></div>
-    <div id="command-line" style="display: none;">
+    <div id="command-line">
         <span class="prompt">AFI_DECRYPT_CORE_OS:\$</span> 
-        <input type="text" id="cmd-input" autocomplete="off" autofocus>
+        <input type="text" id="cmd-input" autocomplete="off" autofocus placeholder="Wpisz komendę tutaj...">
     </div>
 </div>
 
@@ -214,9 +214,8 @@
             const hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
             p.innerHTML = `[ACCESS DENIED] UNKNOWN CLIENT SIGNATURE DETECTED.<br>Terminal locked due to brute force mitigation. Retry in ${hoursLeft} hours.`;
             terminal.appendChild(p);
+            document.getElementById("command-line").style.display = "none";
         } else {
-            document.getElementById("command-line").style.display = "flex";
-            document.getElementById("cmd-input").focus();
             showAttemptsLeft();
         }
     }
@@ -231,6 +230,7 @@
         terminal.appendChild(p);
     }
 
+    // Odpalenie animacji tekstu na starcie
     setTimeout(typeLine, 400);
 
     const input = document.getElementById("cmd-input");
@@ -239,14 +239,16 @@
             const fullInput = input.value.trim();
             if (!fullInput) return;
 
+            // Wyświetlenie tego co napisał gracz
             let playerLine = document.createElement("div");
             playerLine.className = "line";
             playerLine.innerHTML = `<span style="color:rgba(0, 255, 102, 0.6)">AFI_DECRYPT_CORE_OS:$</span> ${fullInput}`;
             terminal.appendChild(playerLine);
 
+            // Dzielimy tekst na komendę i argumenty
             const parts = fullInput.split(" ");
-            const command = parts[0].toLowerCase(); // Naprawione!
-            const argument = parts[1] || "";        // Naprawione!
+            const command = parts[0].toLowerCase();
+            const argument = parts[1] || "";
 
             let response = document.createElement("div");
             response.className = "line";
@@ -269,6 +271,3 @@
                     localStorage.setItem('v2_attempts', attempts.toString());
                     localStorage.setItem('v2_last_time', Date.now().toString());
 
-                    const inputHash = await sha256(argument);
-
-                    if (inputHash === CORRECT_HASH) {
