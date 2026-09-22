@@ -3,133 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SYSTEM CRITICAL OVERRIDE</title>
+    <title>TERMINAL SKARBCA AFI</title>
     <style>
         body {
-            background-color: #020202;
-            color: #ff3333; /* Czerwony kolor błędu/wirusa */
-            font-family: 'Courier New', Courier, monospace;
-            padding: 20px;
-            font-size: 1.1rem;
-            line-height: 1.5;
-        }
-        .glitch {
-            animation: pulse 1s infinite alternate;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.8; text-shadow: 0 0 5px #ff3333; }
-            100% { opacity: 1; text-shadow: 0 0 15px #ff0000, 0 0 20px #ff3333; }
-        }
-        .hidden-link {
-            color: #111; /* Prawie niewidoczny tekst - czarny na czarnym */
-            text-decoration: none;
-            cursor: default;
-        }
-        .hidden-link:hover {
-            color: #222; /* Nadal ukryty, haker musi sprawdzić kod źródłowy */
-        }
-        #command-line {
-            display: none;
-            color: #00ff33; /* Zielony dla konsoli użytkownika */
-        }
-        input {
-            background: transparent;
-            border: none;
+            background-color: #050505;
             color: #00ff33;
-            font-family: inherit;
-            font-size: inherit;
-            width: 70%;
-            outline: none;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
         }
+        .container {
+            border: 2px solid #00ff33;
+            padding: 30px;
+            background-color: #000;
+            box-shadow: 0 0 20px rgba(0, 255, 51, 0.2);
+            text-align: center;
+            max-width: 420px;
+            width: 100%;
+        }
+        h1 { font-size: 1.4rem; margin-bottom: 20px; letter-spacing: 2px; }
+        input {
+            background: #000;
+            border: 1px solid #00ff33;
+            color: #00ff33;
+            font-size: 2rem;
+            padding: 10px;
+            text-align: center;
+            width: 80%;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            font-family: inherit;
+        }
+        input:focus { outline: none; box-shadow: 0 0 10px rgba(0, 255, 51, 0.5); }
+        button {
+            background-color: #00ff33;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-family: inherit;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover:not(:disabled) { background-color: #fff; box-shadow: 0 0 15px #fff; }
+        button:disabled { background-color: #333; color: #666; cursor: not-allowed; border: 1px solid #666; }
+        .info { margin-top: 15px; font-size: 0.9rem; line-height: 1.4; }
+        .error { color: #ff3333; font-weight: bold; }
+        .success { color: #33ffff; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div id="terminal"></div>
-<div id="command-line">
-    <span>guest@overridden_system:~\$ </span><input type="text" id="cmd-input" autocomplete="off" autofocus>
+<div class="container">
+    <h1>WPROWADŹ KOD ALFANUMERYCZNY</h1>
+    <p>Pozostało prób dzisiaj: <span id="attempts-left">5</span>/5</p>
+    
+    <!-- Placeholder zmieniony na znaki zapytania sugerujące litery i cyfry -->
+    <input type="text" id="pin-input" maxlength="6" placeholder="??????" autocomplete="off">
+    <br>
+    <button id="submit-btn" onclick="checkPin()">AUTORYZUJ</button>
+    
+    <div id="feedback" class="info"></div>
 </div>
 
 <script>
-    // Linijki, które wyświetlą się automatycznie, udając atak wirusa
-    const bootSequence = [
-        "[ SEARCHING FOR VULNERABILITIES... ]",
-        "CONNECTING TO PORT 8080... CONNECTED.",
-        "INJECTING EXPLOIT: CVE-2026-X...",
-        "BYPASSING FIREWALL... 100%",
-        "WARNING: AI CORE 'NEO-LOGIC' DETECTED IN NETWORK.",
-        "CORRUPTING SYSTEM SECTORS...",
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
-        "SYSTEM LOCKED BY 'PANDORA_PROTOCOL.EXE'",
-        "ALL DATA ENCRYPTED. DO NOT REBOOT.",
-        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
-        "Wpisz polecenie 'help', aby zobaczyć dostępne opcje serwera."
-    ];
+    // Bezpieczny hash SHA-256 dla Twojego kodu "D76h4N" (wielkość liter ma znaczenie)
+    const CORRECT_HASH = "b909062eb868cb8b776f82798f01b34e4439cfa4267ca08a8a30364fe060f64b"; 
+    const MAX_ATTEMPTS = 5;
+    const LOCKOUT_TIME = 24 * 60 * 60 * 1000; // 24 godziny blokady
 
-    let lineIndex = 0;
-    const terminal = document.getElementById("terminal");
+    // Funkcja szyfrująca wpisany tekst do SHA-256
+    async function sha256(message) {
+        const msgBuffer = new TextEncoder().encode(message);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
 
-    function typeLine() {
-        if (lineIndex < bootSequence.length) {
-            let p = document.createElement("p");
-            if (lineIndex >= 6 && lineIndex <= 8) {
-                p.className = "glitch"; // Efekt alarmu dla ważnych komunikatów
-            }
-            p.innerText = bootSequence[lineIndex];
-            terminal.appendChild(p);
-            lineIndex++;
-            window.scrollTo(0, document.body.scrollHeight);
-            setTimeout(typeLine, 600); // Odstęp czasowy między linijkami textu
-        } else {
-            // Po zakończeniu pisania, aktywujemy konsolę dla gracza
-            document.getElementById("command-line").style.display = "block";
-            document.getElementById("cmd-input").focus();
+    function getStorageData() {
+        const attempts = parseInt(localStorage.getItem('vault_attempts')) || 0;
+        const lastAttemptTime = parseInt(localStorage.getItem('vault_last_time')) || 0;
+        return { attempts, lastAttemptTime };
+    }
+
+    function updateUI() {
+        const { attempts, lastAttemptTime } = getStorageData();
+        const now = Date.now();
+        let attemptsLeft = MAX_ATTEMPTS - attempts;
+
+        // Reset prób, jeśli minęło 24h od ostatniego błędu
+        if (now - lastAttemptTime > LOCKOUT_TIME) {
+            localStorage.setItem('vault_attempts', '0');
+            attemptsLeft = MAX_ATTEMPTS;
+        }
+
+        document.getElementById('attempts-left').innerText = Math.max(0, attemptsLeft);
+
+        if (attemptsLeft <= 0) {
+            document.getElementById('pin-input').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            
+            const timeLeft = LOCKOUT_TIME - (now - lastAttemptTime);
+            const hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
+            document.getElementById('feedback').innerHTML = `<span class="error">TERMINAL ZABLOKOWANY.<br>Wielokrotna próba naruszenia kodu AFI.<br>Spróbuj ponownie za około ${hoursLeft} godz.</span>`;
         }
     }
 
-    // Uruchomienie sekwencji "ataku"
-    setTimeout(typeLine, 1000);
-
-    // Obsługa komend wpisywanych przez gracza
-    const input = document.getElementById("cmd-input");
-    input.addEventListener("keydown", function(e) {
-        if (e.key === "Enter") {
-            const command = input.value.trim().toLowerCase();
-            let p = document.createElement("p");
-            p.innerHTML = `<span style="color:#00ff33">guest@overridden_system:~$</span> ${input.value}`;
-            terminal.appendChild(p);
-            
-            let response = document.createElement("p");
-            
-            if (command === "help") {
-                response.innerHTML = "Dostępne komendy:<br>- <b>status</b>: Sprawdza stan infekcji systemu.<br>- <b>decrypt</b>: Próba odszyfrowania dysku.<br>- <b>about</b>: Informacje o protokole.";
-            } else if (command === "status") {
-                response.innerHTML = "Status: ZAINFEKOWANY.<br>Wirus 'PANDORA' zablokował dostęp do bazy danych.<br>Ścieżka do podsystemu sejfu została wymazana z pamięci operacyjnej... A może jednak nie? Zgubiłem ją w kodzie źródłowym strony.";
-            } else if (command === "about") {
-                response.innerHTML = "Protokół PANDORA v4.2. Stworzony przez podmiot autonomiczny. Szukasz wejścia do Skarbca? Szukaj tam, gdzie ukryto sekrety programistów (F12 / Wyświetl źródło strony).";
-            } else if (command === "decrypt") {
-                response.innerHTML = "<span style='color:#ff3333'>BŁĄD: Brak 6-cyfrowego klucza głównego. System nadrzędny przekierował autoryzację do zewnętrznego modułu Sejfu.</span>";
-            } else {
-                response.innerHTML = `Komenda '${command}' nie została rozpoznana. Wpisz 'help'.`;
-            }
-            
-            terminal.appendChild(response);
-            input.value = "";
-            window.scrollTo(0, document.body.scrollHeight);
+    async function checkPin() {
+        const inputField = document.getElementById('pin-input');
+        const feedback = document.getElementById('feedback');
+        // Pobieramy tekst bez automatycznej zamiany wielkości liter
+        const inputVal = inputField.value.trim();
+        
+        if (inputVal.length !== 6) {
+            feedback.innerHTML = '<span class="error">Kod musi składać się dokładnie z 6 znaków (wielkie/małe litery, cyfry).</span>';
+            return;
         }
-    });
-</script>
 
-<!-- 
-    UKRYTA WSKAZÓWKA DLA HAKERA (Widoczna tylko po wciśnięciu CTRL+U lub F12):
-    
-    Brawo, potrafisz czytać kod źródłowy. Wygląda na to, że system zapisał 
-    tajną podstronę w komentarzu deweloperskim. 
-    Skopiuj poniższy token i doklej go do adresu URL swojej strony, aby przejść do Listów:
-    
-    /listy_z_serwera_x92.html
--->
+        let { attempts, lastAttemptTime } = getStorageData();
+        const now = Date.now();
+
+        // Rejestrujemy próbę w pamięci przeglądarki
+        attempts++;
+        localStorage.setItem('vault_attempts', attempts.toString());
+        localStorage.setItem('vault_last_time', now.toString());
+
+        // Porównujemy hashe
+        const inputHash = await sha256(inputVal);
+
+        if (inputHash === CORRECT_HASH) {
+            localStorage.setItem('vault_attempts', '0');
+            feedback.innerHTML = '<span class="success">DOSTĘP PRZYZNANY.<br>Baza danych AFI odblokowana.<br><a href="https://twoja-kolejna-strona.pl" style="color:#33ffff; text-decoration: underline;">OTWÓRZ PLIK KOŃCOWY</a></span>';
+            document.getElementById('pin-input').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+        } else {
+            feedback.innerHTML = '<span class="error">BŁĄD AUTORYZACJI.<br>Nieprawidłowa sekwencja znaków.</span>';
+            inputField.value = '';
+        }
+
+        updateUI();
+    }
+
+    // Uruchomienie sprawdzania stanu przy wejściu na stronę
+    updateUI();
+</script>
 
 </body>
 </html>
-    
