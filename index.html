@@ -1,47 +1,189 @@
-            letter-spacing: 5px;
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFI // QUANTUM_CORE_INTERFACE</title>
+    <style>
+        :root {
+            --glow-color: #00ff66;
+            --bg-color: #030a06;
+            --error-color: #ff3333;
+            --error-glow: #ff0000;
+        }
+
+        body {
+            background-color: #030a06;
+            color: #00ff66;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 0;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Kinowe przyciemnienie brzegów ekranu */
+        body::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 40%, rgba(0,0,0,0.9) 100%);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        /* Linie skanowania monitora CRT */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%);
+            z-index: 11;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        .screen-container {
+            width: 90vw;
+            max-width: 900px;
+            height: 80vh;
+            background: rgba(2, 12, 6, 0.95);
+            border: 1px solid rgba(0, 255, 102, 0.4);
+            box-shadow: 0 0 30px rgba(0, 255, 102, 0.15), inset 0 0 20px rgba(0, 255, 102, 0.1);
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+            box-sizing: border-box;
+        }
+
+        .screen-container::before {
+            content: "AFI // SECURE_NODE_74B";
+            position: absolute;
+            top: -10px; left: 20px;
+            background: #030a06;
+            padding: 0 10px;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            color: rgba(0, 255, 102, 0.7);
+            border: 1px solid rgba(0, 255, 102, 0.4);
+        }
+
+        #terminal {
+            flex-grow: 1;
+            overflow-y: auto;
             margin-bottom: 15px;
-            font-family: inherit;
+            padding-right: 10px;
+            font-size: 1.05rem;
+            text-shadow: 0 0 8px #00ff66;
         }
-        input:focus { outline: none; box-shadow: 0 0 10px rgba(0, 255, 51, 0.5); }
-        button {
-            background-color: #00ff33;
-            color: #000;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
-            font-family: inherit;
+
+        #terminal::-webkit-scrollbar { width: 4px; }
+        #terminal::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+        #terminal::-webkit-scrollbar-thumb { background: rgba(0, 255, 102, 0.4); }
+
+        .line { margin-bottom: 8px; opacity: 0.95; }
+
+        .glitch {
+            color: var(--error-color);
+            text-shadow: 0 0 10px var(--error-glow);
             font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
-        button:hover:not(:disabled) { background-color: #fff; box-shadow: 0 0 15px #fff; }
-        button:disabled { background-color: #333; color: #666; cursor: not-allowed; border: 1px solid #666; }
-        .info { margin-top: 15px; font-size: 0.9rem; line-height: 1.4; }
-        .error { color: #ff3333; font-weight: bold; }
-        .success { color: #33ffff; font-weight: bold; }
+
+        #command-line {
+            border-top: 1px solid rgba(0, 255, 102, 0.2);
+            padding-top: 15px;
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+            text-shadow: 0 0 8px #00ff66;
+        }
+
+        .prompt {
+            color: #00ff66;
+            margin-right: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        input {
+            background: transparent;
+            border: none;
+            color: #00ff66;
+            font-family: inherit;
+            font-size: inherit;
+            width: 100%;
+            outline: none;
+            text-shadow: 0 0 8px #00ff66;
+        }
+
+        .error-text { 
+            color: var(--error-color); 
+            text-shadow: 0 0 10px var(--error-glow);
+            font-weight: bold;
+        }
+        
+        .success-text { 
+            color: #00ffff; 
+            text-shadow: 0 0 12px #00ffff;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>WPROWADŹ KOD ALFANUMERYCZNY</h1>
-    <p>Pozostało prób dzisiaj: <span id="attempts-left">5</span>/5</p>
-    
-    <!-- Placeholder zmieniony na znaki zapytania sugerujące litery i cyfry -->
-    <input type="text" id="pin-input" maxlength="6" placeholder="??????" autocomplete="off">
-    <br>
-    <button id="submit-btn" onclick="checkPin()">AUTORYZUJ</button>
-    
-    <div id="feedback" class="info"></div>
+<div class="screen-container">
+    <div id="terminal"></div>
+    <div id="command-line" style="display: none;">
+        <span class="prompt">AFI_DECRYPT_CORE_OS:\$</span> 
+        <input type="text" id="cmd-input" autocomplete="off" autofocus>
+    </div>
 </div>
 
 <script>
-    // Bezpieczny hash SHA-256 dla Twojego kodu "D76h4N" (wielkość liter ma znaczenie)
-    const CORRECT_HASH = "b909062eb868cb8b776f82798f01b34e4439cfa4267ca08a8a30364fe060f64b"; 
+    const CORRECT_HASH = "b909062eb868cb8b776f82798f01b34e4439cfa4267ca08a8a30364fe060f64b"; // D76h4N
     const MAX_ATTEMPTS = 5;
-    const LOCKOUT_TIME = 24 * 60 * 60 * 1000; // 24 godziny blokady
+    const LOCKOUT_TIME = 24 * 60 * 60 * 1000;
 
-    // Funkcja szyfrująca wpisany tekst do SHA-256
+    const bootSequence = [
+        ">> INITIALIZING QUANTUM LINK LAYER...",
+        ">> ESTABLISHING SYNC WITH AUTONOMOUS FEDERAL INVESTIGATION NET...",
+        ">> WARNING: QUANTUM FIREWALL BYPASSED BY EXTERNAL PROTOCOL.",
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+        "CRITICAL STATE: BASE DATA ENCRYPTED BY 'PANDORA.AI'",
+        "DECRYPTION PROTOCOL REQUIREMENT: 6-CHARACTER CASE-SENSITIVE KEY",
+        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+        ">> Enter command 'help' to review decryption parameters."
+    ];
+
+    let lineIndex = 0;
+    const terminal = document.getElementById("terminal");
+
+    function typeLine() {
+        if (lineIndex < bootSequence.length) {
+            let p = document.createElement("div");
+            p.className = "line";
+            if (lineIndex >= 3 && lineIndex <= 6) {
+                p.className = "line glitch";
+            }
+            p.innerText = bootSequence[lineIndex];
+            terminal.appendChild(p);
+            lineIndex++;
+            terminal.scrollTop = terminal.scrollHeight;
+            setTimeout(typeLine, 450);
+        } else {
+            checkLockoutStatus();
+        }
+    }
+
     async function sha256(message) {
         const msgBuffer = new TextEncoder().encode(message);
         const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
@@ -50,72 +192,83 @@
     }
 
     function getStorageData() {
-        const attempts = parseInt(localStorage.getItem('vault_attempts')) || 0;
-        const lastAttemptTime = parseInt(localStorage.getItem('vault_last_time')) || 0;
+        const attempts = parseInt(localStorage.getItem('v2_attempts')) || 0;
+        const lastAttemptTime = parseInt(localStorage.getItem('v2_last_time')) || 0;
         return { attempts, lastAttemptTime };
     }
 
-    function updateUI() {
+    function checkLockoutStatus() {
         const { attempts, lastAttemptTime } = getStorageData();
         const now = Date.now();
-        let attemptsLeft = MAX_ATTEMPTS - attempts;
 
-        // Reset prób, jeśli minęło 24h od ostatniego błędu
         if (now - lastAttemptTime > LOCKOUT_TIME) {
-            localStorage.setItem('vault_attempts', '0');
-            attemptsLeft = MAX_ATTEMPTS;
+            localStorage.setItem('v2_attempts', '0');
         }
 
-        document.getElementById('attempts-left').innerText = Math.max(0, attemptsLeft);
+        const currentAttempts = parseInt(localStorage.getItem('v2_attempts')) || 0;
 
-        if (attemptsLeft <= 0) {
-            document.getElementById('pin-input').disabled = true;
-            document.getElementById('submit-btn').disabled = true;
-            
+        if (MAX_ATTEMPTS - currentAttempts <= 0) {
+            let p = document.createElement("div");
+            p.className = "line error-text";
             const timeLeft = LOCKOUT_TIME - (now - lastAttemptTime);
             const hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
-            document.getElementById('feedback').innerHTML = `<span class="error">TERMINAL ZABLOKOWANY.<br>Wielokrotna próba naruszenia kodu AFI.<br>Spróbuj ponownie za około ${hoursLeft} godz.</span>`;
-        }
-    }
-
-    async function checkPin() {
-        const inputField = document.getElementById('pin-input');
-        const feedback = document.getElementById('feedback');
-        // Pobieramy tekst bez automatycznej zamiany wielkości liter
-        const inputVal = inputField.value.trim();
-        
-        if (inputVal.length !== 6) {
-            feedback.innerHTML = '<span class="error">Kod musi składać się dokładnie z 6 znaków (wielkie/małe litery, cyfry).</span>';
-            return;
-        }
-
-        let { attempts, lastAttemptTime } = getStorageData();
-        const now = Date.now();
-
-        // Rejestrujemy próbę w pamięci przeglądarki
-        attempts++;
-        localStorage.setItem('vault_attempts', attempts.toString());
-        localStorage.setItem('vault_last_time', now.toString());
-
-        // Porównujemy hashe
-        const inputHash = await sha256(inputVal);
-
-        if (inputHash === CORRECT_HASH) {
-            localStorage.setItem('vault_attempts', '0');
-            feedback.innerHTML = '<span class="success">DOSTĘP PRZYZNANY.<br>Baza danych AFI odblokowana.<br><a href="https://twoja-kolejna-strona.pl" style="color:#33ffff; text-decoration: underline;">OTWÓRZ PLIK KOŃCOWY</a></span>';
-            document.getElementById('pin-input').disabled = true;
-            document.getElementById('submit-btn').disabled = true;
+            p.innerHTML = `[ACCESS DENIED] UNKNOWN CLIENT SIGNATURE DETECTED.<br>Terminal locked due to brute force mitigation. Retry in ${hoursLeft} hours.`;
+            terminal.appendChild(p);
         } else {
-            feedback.innerHTML = '<span class="error">BŁĄD AUTORYZACJI.<br>Nieprawidłowa sekwencja znaków.</span>';
-            inputField.value = '';
+            document.getElementById("command-line").style.display = "flex";
+            document.getElementById("cmd-input").focus();
+            showAttemptsLeft();
         }
-
-        updateUI();
     }
 
-    // Uruchomienie sprawdzania stanu przy wejściu na stronę
-    updateUI();
-</script>
+    function showAttemptsLeft() {
+        const { attempts } = getStorageData();
+        let p = document.createElement("div");
+        p.className = "line";
+        p.style.color = "rgba(0, 255, 102, 0.4)";
+        p.style.textShadow = "none";
+        p.innerText = `[AFI-SHIELD] Security matrix status: ${MAX_ATTEMPTS - attempts}/${MAX_ATTEMPTS} credentials remaining for current cycle.`;
+        terminal.appendChild(p);
+    }
 
-</body>
-</html>
+    setTimeout(typeLine, 400);
+
+    const input = document.getElementById("cmd-input");
+    input.addEventListener("keydown", async function(e) {
+        if (e.key === "Enter") {
+            const fullInput = input.value.trim();
+            if (!fullInput) return;
+
+            let playerLine = document.createElement("div");
+            playerLine.className = "line";
+            playerLine.innerHTML = `<span style="color:rgba(0, 255, 102, 0.6)">AFI_DECRYPT_CORE_OS:$</span> ${fullInput}`;
+            terminal.appendChild(playerLine);
+
+            const parts = fullInput.split(" ");
+            const command = parts[0].toLowerCase(); // Naprawione!
+            const argument = parts[1] || "";        // Naprawione!
+
+            let response = document.createElement("div");
+            response.className = "line";
+
+            if (command === "help") {
+                response.innerHTML = "SYSTEM CORES COMMAND ACCESS:<br>" +
+                                     " - <span style='color:#fff'>status</span>: Outputs local network contamination status.<br>" +
+                                     " - <span style='color:#fff'>decrypt [KEY]</span>: Submits 6-char verification payload (Case-Sensitive).";
+            } 
+            else if (command === "status") {
+                response.innerHTML = "OVERALL SYSTEM RECOVERY INTEGRITY: COMPROMISED.<br>Quantum nodes offline. Awaiting administrative override command 'decrypt'.";
+            } 
+            else if (command === "decrypt") {
+                if (argument.length !== 6) {
+                    response.className = "line error-text";
+                    response.innerText = "COMMAND EXCEPTION: Expected syntax 'decrypt [6-character_key]'.";
+                } else {
+                    let { attempts } = getStorageData();
+                    attempts++;
+                    localStorage.setItem('v2_attempts', attempts.toString());
+                    localStorage.setItem('v2_last_time', Date.now().toString());
+
+                    const inputHash = await sha256(argument);
+
+                    if (inputHash === CORRECT_HASH) {
