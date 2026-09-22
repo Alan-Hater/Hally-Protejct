@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFI // WORKSTATION_CORE_OS</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #0c100e;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Tło pulpitu komputerowego AFI */
+        .desktop {
+            width: 100vw; height: 100vh;
+            background: radial-gradient(circle, #10251a 0%, #070d0a 100%);
+            position: relative;
+            box-sizing: border-box;
+            padding: 20px;
+        }
+
+        /* Ikona na pulpicie */
+        .desktop-icon {
+            width: 80px; text-align: center;
+            cursor: pointer;
+            padding: 10px; border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .desktop-icon:hover {
+            background: rgba(0, 255, 102, 0.15);
+            border: 1px solid rgba(0, 255, 102, 0.3);
+        }
+        .icon-img {
+            width: 45px; height: 45px;
+            background: #00ff66; margin: 0 auto 8px;
+            clip-path: polygon(0% 0%, 100% 0%, 100% 75%, 75% 100%, 0% 100%);
+            opacity: 0.8;
+        }
+        .icon-label { font-size: 0.8rem; font-family: monospace; color: #00ff66; }
+
+        /* Sztuczna Przeglądarka Internetowa */
+        .window {
+            position: absolute;
+            top: 10%; left: 15%;
+            width: 70vw; height: 65vh;
+            background: #1e1e1e;
+            border: 1px solid #00ff66;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+            display: flex; flex-direction: column;
+            z-index: 5;
+        }
+        .window-header {
+            background: #111; padding: 10px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid #333;
+            font-family: monospace; font-size: 0.85rem; color: #888;
+        }
+        .browser-bar {
+            background: #252525; padding: 8px;
+            display: flex; align-items: center;
+            border-bottom: 1px solid #333;
+        }
+        .browser-input {
+            flex-grow: 1; background: #111; border: 1px solid #00ff66;
+            color: #00ff66; font-family: monospace; padding: 6px 12px;
+            outline: none; font-size: 0.95rem;
+        }
+        .browser-btn {
+            background: #00ff66; color: #000; border: none;
+            padding: 6px 15px; margin-left: 10px; font-family: monospace;
+            font-weight: bold; cursor: pointer;
+        }
+        .browser-content {
+            flex-grow: 1; background: #fff; color: #000;
+            display: flex; justify-content: center; align-items: center;
+            font-family: Arial, sans-serif; position: relative;
+        }
+
+        /* Ekran Blokady i Ataku AI */
+        .ai-lockdown {
+            display: none; position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #000; z-index: 100;
+            font-family: 'Courier New', Courier, monospace;
+            color: #ff3333; padding: 50px; box-sizing: border-box;
+        }
+        .ai-title { font-size: 2.5rem; font-weight: bold; text-shadow: 0 0 15px #ff0000; margin-bottom: 10px; }
+        .ai-text { font-size: 1.2rem; line-height: 1.6; color: #ffaa00; margin-bottom: 30px; }
+
+        /* Interfejs Mini-Gry (Zabezpieczenia) */
+        .game-box {
+            display: none; border: 2px solid #ff3333; background: #110202;
+            padding: 30px; max-width: 500px; text-align: center; margin: 0 auto;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+        }
+        .grid-container {
+            display: grid; grid-template-columns: repeat(3, 80px); gap: 10px;
+            justify-content: center; margin-top: 20px;
+        }
+        .grid-node {
+            width: 80px; height: 80px; background: #220505;
+            border: 1px solid #ff3333; color: #ff3333; font-size: 1.5rem;
+            font-weight: bold; display: flex; justify-content: center;
+            align-items: center; cursor: pointer;
+        }
+        .grid-node:hover { background: #440a0a; }
+
+        /* Pasek zadań na dole pulpitu */
+        .taskbar {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            height: 45px; background: #070d0a; border-top: 1px solid rgba(0, 255, 102, 0.3);
+            display: flex; align-items: center; padding: 0 15px;
+            font-family: monospace; font-size: 0.85rem; color: rgba(0, 255, 102, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+<!-- SZTUCZNY PULPIT AFI -->
+<div class="desktop">
+    <div class="desktop-icon" onclick="openBrowser()">
+        <div class="icon-img"></div>
+        <div class="icon-label">AFI_Net.exe</div>
+    </div>
+
+    <!-- OKNO PRZEGLĄDARKI -->
+    <div class="window" id="browser-window" style="display: none;">
+        <div class="window-header">
+            <span>AFI Secure Browser v2.91</span>
+            <span style="cursor: pointer;" onclick="closeBrowser()">[X]</span>
+        </div>
+        <div class="browser-bar">
+            <input type="text" id="url-input" class="browser-input" placeholder="Wpisz adres URL...">
+            <button class="browser-btn" onclick="navigateBrowser()">GO</button>
+        </div>
+        <div class="browser-content" id="browser-body">
+            <div style="color: #888; font-family: monospace; text-align: center;">
+                <h3>AFI INTERNAL INTRANET</h3>
+                <p>Wpisz poszukiwaną domenę korporacyjną w pasku adresu.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="taskbar">SYSTEM STATUS: OPERATIONAL // SECURE LAYER ACTIVE // 2026-09-22</div>
+</div>
+
+<!-- EKRAN ATRAKU SZTUCZNEJ INTELIGENCJI (LOCKDOWN) -->
+<div class="ai-lockdown" id="lockdown-screen">
+    <div class="ai-title">!!! SECURITY CORE COMPROMISED !!!</div>
+    <div class="ai-text">
+        [PANDORA.AI DETECTED INTRUSION]<br>
+        Wykryto próbę dostępu do zastrzeżonej domeny korporacyjnej AFI's_Corporation.com.<br>
+        Sztuczna inteligencja przejęła kontrolę nad Twoją sesją hakerską. System ulega uszkodzeniu.
+    </div>
+
+    <!-- ETAP MINIGRY: ŁAMANIE WĘZŁÓW MATRYCY -->
+    <div class="game-box" id="minigame">
+        <h3 style="color: #ffaa00; margin-top: 0;">PROTOKÓŁ OBRONNY: WYCZYŚĆ REWERS MATRYCY</h3>
+        <p style="font-size: 0.9rem;">Klikaj węzły w kolejności numerycznej (1 -> 2 -> 3), aby zresetować pamięć AI zanim skończy się czas!</p>
+        <div class="grid-container" id="matrix-grid">
+            <!-- Węzły generowane przez JS -->
+        </div>
+        <p id="timer" style="font-weight: bold; margin-top: 20px;">POZOSTAŁY CZAS: 10s</p>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    let gameTimer;
+    let timeLeft = 10;
+
+    function openBrowser() {
+        document.getElementById("browser-window").style.display = "flex";
+    }
+
+    function closeBrowser() {
+        document.getElementById("browser-window").style.display = "none";
+    }
+
+    function navigateBrowser() {
+        const urlInput = document.getElementById("url-input").value.trim();
+        const browserBody = document.getElementById("browser-body");
+
+        // Sprawdzamy wpisaną frazę dokładnie według Twoich wytycznych
+        if (urlInput === "AFI's_Corporation.com") {
+            triggerAILockdown();
+        } else {
+            browserBody.innerHTML = `<div style="color: #ff3333; font-family: monospace;"><b>HTTP 404 NOT FOUND</b><br>Serwer '${urlInput}' nie odpowiada lub jest zablokowany przez AFI.</div>`;
+        }
+    }
+
+    // AI przejmuje kontrolę nad komputerem
+    function triggerAILockdown() {
+        document.getElementById("lockdown-screen").style.display = "block";
+        
+        // Krótkie opóźnienie przed startem gry dla budowania napięcia
+        setTimeout(() => {
+            document.getElementById("minigame").style.display = "block";
+            startMiniGame();
+        }, 3000);
+    }
+
+    // Start minigry hakerskiej przeciwko AI
+    function startMiniGame() {
+        const grid = document.getElementById("matrix-grid");
+        grid.innerHTML = "";
+        currentStep = 1;
+        timeLeft = 10;
+
+        // Generujemy losowo rozrzucone liczby od 1 do 3 na siatce węzłów
+        let numbers = [1, 2, 3, "", "", "", "", "", ""];
+        numbers.sort(() => Math.random() - 0.5);
+
+        numbers.forEach(num => {
+            let node = document.createElement("div");
+            node.className = "grid-node";
+            node.innerText = num;
+            
+            if (num !== "") {
+                node.onclick = function() {
+                    if (num === currentStep) {
+                        node.style.borderColor = "#00ff66";
+                        node.style.color = "#00ff66";
+                        node.style.background = "#052205";
+                        currentStep++;
+                        
+                        // Sukces - gracz kliknął 1, 2 i 3 bez błędu
+                        if (currentStep > 3) {
+                            clearInterval(gameTimer);
+                            winGame();
+                        }
+                    } else if (num > currentStep) {
+                        // Gracz kliknął złą kolejność
+                        alert("BŁĄD SEKWENCJI! AI przyspiesza niszczenie danych.");
+                        timeLeft -= 2;
+                    }
+                };
+            }
+            grid.appendChild(node);
+        });
+
+        // Licznik czasu gry
+        gameTimer = setInterval(() => {
+            timeLeft--;
+            document.getElementById("timer").innerText = `POZOSTAŁY CZAS: ${timeLeft}s`;
+
+            if (timeLeft <= 0) {
+                clearInterval(gameTimer);
+                gameOver();
+            }
+        }, 1000);
+    }
+
